@@ -1,0 +1,131 @@
+= WMT 2023 Metrics Shared Task Submission: Cometoid
+:doctype: article
+:icons: font
+:source-highlighter: highlightjs
+//:listing-caption: Listing
+:sectanchors:
+:sectlinks:
+:toc: auto
+:toclevels: 3
+
+++++
+<style>
+    #header, #content, #footnotes, #footer {
+  width: 100%;
+  margin: 0 auto;
+  max-width: 120em;
+}
+</style>
+++++
+
+This repository contains documentation and scripts for Cometoid and Chrfoid metrics.
+
+
+== Setup
+
+Our models are implemented in https://marian-nmt.github.io/quickstart/[Marian NMT^].
+We provide python bindings for Marian, which can be installed as follows:
+
+.Prerequisites: Install https://github.com/marian-nmt/marian-dev/pull/1013[PyMarian^]
+[source, bash]
+----
+
+git clone https://github.com/marian-nmt/marian-dev
+# Pybind PR (github.com/marian-nmt/marian-dev/pull/1013) not merged at the time of writing;
+# so checkout the branch
+git checkout tg/pybind-new
+
+# build and install -- run this from project root, i.e., dir having pyproject.toml
+# simple case : no cuda, default compiler
+pip install -v .
+
+# optiona: using a specific version of compiler (e.g., gcc-9 g++-9)
+CMAKE_ARGS="-DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9" pip install -v .
+
+# Option: with CUDA on
+CMAKE_ARGS="-DCOMPILE_CUDA=ON" pip install . 
+
+# Option: with a specific version of cuda toolkit, e,g. cuda 11.5
+CMAKE_ARGS="-DCOMPILE_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.5" pip install -v .
+----
+
+TIP: If CMAKE complains about missing C/C++ libraries, follow instructions at https://marian-nmt.github.io/quickstart/ and install them.
+
+
+== Models
+
+The following reference-free/quality-estimation metrics are available:
+
+* `chrfoid-wmt23`
+* `cometoid22-wmt23`
+* `cometoid22-wmt22`
+* `cometoid22-wmt21`
+
+
+== Using Pymarian
+
+
+=== CLI
+`pymarian-evaluate` is a convenient CLI that downloads and caches models, and runs them on the input data.
+
+[source,bash]
+----
+# download sample data
+sacrebleu -t wmt21/systems -l en-zh --echo src > src.txt
+sacrebleu -t wmt21/systems -l en-zh --echo Online-B > mt.txt
+
+# chrfoid
+paste src.txt mt.txt | pymarian-evaluate --stdin -m chrfoid-wmt23 
+# cometoid22-wmt22; similarly for other models
+paste src.txt mt.txt | pymarian-evaluate --stdin -m cometoid22-wmt22
+----
+
+
+=== Python API
+
+[source,python]
+----
+# Evaluator
+from pymarian import Evaluator
+marian_args = '-m path/to/model.npz -v path/to.vocab.spm path/to.vocab.spm --like comet-qe'
+evaluator = Evaluator(marian_args)
+
+data = [
+    ["Source1", "Hyp1"],
+    ["Source2", "Hyp2"]
+]
+scores = evaluator.run(data)
+for score in scores:
+    print(score)
+----
+
+== Using `marian`
+
+TIP: The `pymarian-evaluate` downloads and caches models under `~/.cache/marian/metrics/<model>`
+
+Models can ne downloaded from `https://textmt.blob.core.windows.net/www/models/mt-metric/<model>.tgz`, where `<model>` is one of the above (eg. https://textmt.blob.core.windows.net/www/models/mt-metric/cometoid22-wmt22.tgz[`cometoid22-wmt22`^]).
+Download and extract the desired model to a directory, say `$model_dir`. 
+
+
+[source,bash]
+----
+model_dir=~/.cache/marian/metrics/cometoid22-wmt22
+
+# Score on CPU
+N_CPU=6
+paste src.txt mt.txt | marian evaluate --like comet-qe -m $model_dir/*.npz -v $model_dir/vocab.{spm,spm} \
+        -w 8000 --quiet --cpu-threads $N_CPU --mini-batch 1 --maxi-batch 1
+
+# Score on GPUs; here "--devices 0 1 2 3" means use 4 GPUs
+paste src.txt mt.txt | marian evaluate --like comet-qe -m $model_dir/*.npz -v $model_dir/vocab.{spm,spm} \
+        -w -4000 --quiet --devices 0 1 2 3 --mini-batch 16 --maxi-batch 1000
+----
+
+[cite]
+== Citation
+
+Please cite this paper (to-appeat at WMT2023): 
+
+_Cometoid: Distilling Strong Reference-based Machine Translation Metrics into Even Stronger Quality Estimation Metrics_
+
+TODO: add bibtex when available
