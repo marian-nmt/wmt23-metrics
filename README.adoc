@@ -1,22 +1,12 @@
 = WMT 2023 Metrics Shared Task Submission: Cometoid
 :doctype: article
-:icons: font
+:icons:
 :source-highlighter: highlightjs
 //:listing-caption: Listing
 :sectanchors:
 :sectlinks:
 :toc: auto
-:toclevels: 3
-
-++++
-<style>
-    #header, #content, #footnotes, #footer {
-  width: 100%;
-  margin: 0 auto;
-  max-width: 120em;
-}
-</style>
-++++
+:toclevels: 2
 
 This repository contains documentation and scripts for Cometoid and Chrfoid metrics.
 
