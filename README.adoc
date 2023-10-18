@@ -111,6 +111,60 @@ paste src.txt mt.txt | marian evaluate --like comet-qe -m $model_dir/*.npz -v $m
         -w -4000 --quiet --devices 0 1 2 3 --mini-batch 16 --maxi-batch 1000
 ----
 
+
+== Reproduce Evaluation Results on WMT22
+
+
+.Step 1: Setup and obtain teset set
+```bash
+# install requirements; including mt-metrics-eval
+pip install -r requirements.txt
+
+# download metrics package 
+python -m mt_metrics_eval.mtme --download
+
+
+# Flatten test data as TSV; this will be used in subsequent steps
+# also this will help speedup evaluation
+data_file=$(python -m evaluate -t wmt22 flatten --no-ref)
+```
+
+.Step 2: Get Segment Level Scores
+```bash
+devices="0 1 2 3 4 5" # run on GPUs
+n_segs=$(wc -l < $data_file)
+for m in chrfoid-wmt23 cometoid22-wmt{21,22,23}; do 
+    out=${data_file%.tsv}.seg.score.$m; 
+    [[ -f $out._OK ]] && continue;
+    rm -f $out; `# remove incomplete file, if any`
+    cut -f4,6 $data_file | pymarian-evaluate --stdin -d $devices -m $m | tqdm --desc=$m --total=$n_segs > $out && touch $out._OK;
+done
+```
+
+.Step 3: Evaluate on WMT22 Metrics testset
+```bash
+# average seg scores to system scores; then evaluate
+for m in chrfoid-wmt23 cometoid22-wmt{21,22,23}; do 
+    score_file=${data_file%.tsv}.seg.score.$m; 
+    [[ -f $score_file._OK ]] || { echo "Error: $scores_file._OK  not found"; continue;}
+    python -m evaluate -t wmt22 full --no-ref --name $m --scores $score_file;
+done
+```
+This produces `results.csv`
+
+.Step 4: Verify results
+```
+$ cat results.csv  | grep -E -i 'wmt22|cometoid|chrf|comet-22'
+,wmt22.mqm_tab11,wmt22.da_sqm_tab8
+*chrfoid-wmt23[noref],0.7773722627737226,0.8321299638989169
+*cometoid22-wmt21[noref],0.7883211678832117,0.8483754512635379
+*cometoid22-wmt22[noref],0.8065693430656934,0.8574007220216606
+*cometoid22-wmt23[noref],0.8029197080291971,0.8592057761732852
+COMET-22,0.8394160583941606,0.8393501805054152
+MS-COMET-22,0.8284671532846716,0.8303249097472925
+chrF,0.7335766423357665,0.7581227436823105
+```
+
 [cite]
 == Citation
 
