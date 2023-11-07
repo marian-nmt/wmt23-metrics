@@ -1,5 +1,5 @@
 pandas==2.1.1
-git+https://github.com/google-research/mt-metrics-eval.git@d18c3ebe91a004c124c179ad5614b8dba96f1f48
+git+https://github.com/google-research/mt-metrics-eval.git@113616ba0512d5c19bc99335b8e394fc5b9c3ebe
 openpyxl
 wheel
 tqdm

@@ -10,20 +10,43 @@ from . import log, Config
 
 all_scenarios = {
     # comparable with Table 11
-    "wmt22.mqm_tab11": {"testset": "wmt22",
-                        "focus_lps": ['en-de', 'en-ru', 'zh-en'],
-                        "gold_name": "mqm",
-                        "use_humans": False},
+    "wmt22.mqm_tab11": {
+        "testset": "wmt22",
+        "focus_lps": ['en-de', 'en-ru', 'zh-en'],
+        "gold_name": "mqm",
+        "use_humans": False
+    },
     #"wmt22.dasqm_tab11": {"testset": "wmt22",
     #                      "focus_lps": ['en-de', 'en-ru', 'zh-en'],
     #                      "gold_name": "wmt-appraise",
     #                      "use_humans": False},
     # comparable with Table 8
-    "wmt22.da_sqm_tab8": {"testset": "wmt22",
-                          "focus_lps": ["en-de", "zh-en", "en-ru", 'cs-uk', 'en-hr', 'en-ja', 'en-liv', 'en-uk', 'en-zh', 'sah-ru', 'uk-cs', 'en-cs'],
-                          "gold_name": "wmt-appraise",
-                          "use_humans": True},
+    "wmt22.da_sqm_tab8": {
+        "testset": "wmt22",
+        "focus_lps": ["en-de", "zh-en", "en-ru", 'cs-uk', 'en-hr', 'en-ja', 'en-liv', 'en-uk', 'en-zh', 'sah-ru', 'uk-cs', 'en-cs'],
+        "gold_name": "wmt-appraise",
+        "use_humans": True
+    },
+    "wmt23.mqm(de;he;zh)": {
+        "testset": "wmt23",
+        "focus_lps": ['en-de', 'he-en', 'zh-en'],
+        "gold_name": "mqm",
+        "use_humans": False
+    },
+    "wmt23.dasqm(de;zh)": {
+        "testset": "wmt23",
+        "focus_lps": ['en-de', 'zh-en'],
+        "gold_name": "da-sqm",
+        "use_humans": True
+    },
+    "wmt23.dasqm(all)": {
+        "testset": "wmt23",
+        "focus_lps": ["cs-uk", "de-en", "en-cs", "en-de", "en-ja", "en-zh", "ja-en", "zh-en"],
+        "gold_name": "da-sqm",
+        "use_humans": True
+    }
 }
+all_scenarios = {k:v for k,v in all_scenarios.items() if v['testset'] == 'wmt23'}  # only wmt23 for now
 
 
 def reformat(results):
@@ -78,11 +101,12 @@ def eval_metrics(eval_sets, langs, levels, primary_only, k, gold_name='std',
                 main_refs, close_refs, False, primary_only)
             if not quiet:
                 log.info(taskname)
-            metrics, sig_matrix = data.CompareMetricsWithGlobalAccuracy(
+            result = data.CompareMetricsWithGlobalAccuracy(
                 evs_list, main_refs, close_refs, include_human=human,
                 include_outliers=False, gold_name=gold,
                 primary_metrics=primary_only,
                 domain=None, k=k, pval=0.05)
+            metrics, sig_matrix = result[:2]   
             if do_reformat:
                 results[taskname] = reformat((metrics, sig_matrix))
             else:
@@ -113,9 +137,10 @@ def eval_metrics(eval_sets, langs, levels, primary_only, k, gold_name='std',
                                 close_refs=close_refs, include_human=human,
                                 include_outliers=False, gold_name=gold_name,
                                 primary_metrics=primary_only, domain=domain)
-                            metrics, sig_matrix = data.CompareMetrics(
+                            result = data.CompareMetrics(
                                 corrs, corr_fcn, average_by=avg, k=k, pval=0.05)
                             # Make compatible with accuracy results.
+                            metrics, sig_matrix  = result[:2]
                             metrics = {evs.DisplayName(m): v for m, v in metrics.items()}
                             if do_reformat:
                                 results[taskname] = reformat((metrics, sig_matrix))
@@ -139,9 +164,12 @@ def eval_scenario(paths=Config.DEF_PATHS, quiet=True, scenairo_name='wmt22.da_sq
     results = appraise_results[list(appraise_results.keys())[0]]
     return results
 
-def main(paths=Config.DEF_PATHS, out_file=None):
+def main(paths=Config.DEF_PATHS, out_file=None, testset_name=None):
     all_df = {}
-    for scenario_name in all_scenarios:
+    avail_schenarois = list(all_scenarios.keys())
+    if testset_name is not None:
+        avail_schenarois = [s for s in avail_schenarois if all_scenarios[s]['testset'] == testset_name]
+    for scenario_name in avail_schenarois:
         results = eval_scenario(paths=paths, quiet=False, scenairo_name=scenario_name, do_reformat=True)
         log.info(f"Accuracy for scenario {scenario_name}")
         for key in results.keys():

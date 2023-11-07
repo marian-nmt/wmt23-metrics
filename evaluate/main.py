@@ -104,7 +104,8 @@ def report_only(args):
     """ Produce metrics report only"""
     report_file = str(args.get('report_file', 'results.csv'))
     metrics_paths = [args['base_dir'], args['user_dir']]
-    eval_all(paths=metrics_paths, out_file=report_file)
+    testset_name = args['testset']
+    eval_all(paths=metrics_paths, out_file=report_file, testset_name=testset_name)
 
 def full_eval(args):
     """ Full evaluation mode: score, evaluate and report"""
