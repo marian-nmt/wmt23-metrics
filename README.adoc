@@ -168,8 +168,24 @@ chrF,0.7335766423357665,0.7581227436823105
 [cite]
 == Citation
 
-Please cite this paper (to-appeat at WMT2023): 
+Please cite this paper: https://aclanthology.org/2023.wmt-1.62/
 
-_Cometoid: Distilling Strong Reference-based Machine Translation Metrics into Even Stronger Quality Estimation Metrics_
-
-TODO: add bibtex when available
+```bibtex
+@inproceedings{gowda-etal-2023-cometoid,
+    title = "Cometoid: Distilling Strong Reference-based Machine Translation Metrics into {E}ven Stronger Quality Estimation Metrics",
+    author = "Gowda, Thamme  and
+      Kocmi, Tom  and
+      Junczys-Dowmunt, Marcin",
+    editor = "Koehn, Philipp  and
+      Haddon, Barry  and
+      Kocmi, Tom  and
+      Monz, Christof",
+    booktitle = "Proceedings of the Eighth Conference on Machine Translation",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.wmt-1.62",
+    pages = "751--755",
+}
+```
