@@ -93,21 +93,25 @@ for score in scores:
 
 TIP: The `pymarian-evaluate` downloads and caches models under `~/.cache/marian/metrics/<model>`
 
-Models can ne downloaded from `https://textmt.blob.core.windows.net/www/models/mt-metric/<model>.tgz`, where `<model>` is one of the above (eg. https://textmt.blob.core.windows.net/www/models/mt-metric/cometoid22-wmt22.tgz[`cometoid22-wmt22`^]).
-Download and extract the desired model to a directory, say `$model_dir`. 
++++<del>+++Models can ne downloaded from `https://textmt.blob.core.windows.net/www/models/mt-metric/<model>.tgz`, where `<model>` is one of the above (eg. https://textmt.blob.core.windows.net/www/models/mt-metric/cometoid22-wmt22.tgz[`cometoid22-wmt22`^]).+++</del>+++
+
+UPDATE::
+ Cometoid models are available on Hugginface hub at https://huggingface.co/collections/marian-nmt/cometoid-wmt23-metrics-66903bb137eadb9c5768d5f2
 
 
 [source,bash]
 ----
-model_dir=~/.cache/marian/metrics/cometoid22-wmt22
+model_id=marian-nmt/cometoid22-wmt23
+model=$(huggingface-cli download $model_id checkpoints/marian.model.bin)
+vocab=$(huggingface-cli download $model_id vocab.spm)
 
 # Score on CPU
 N_CPU=6
-paste src.txt mt.txt | marian evaluate --like comet-qe -m $model_dir/*.npz -v $model_dir/vocab.{spm,spm} \
+paste src.txt mt.txt | marian evaluate --like comet-qe -m $model -v $vocab $vocab \
         -w 8000 --quiet --cpu-threads $N_CPU --mini-batch 1 --maxi-batch 1
 
 # Score on GPUs; here "--devices 0 1 2 3" means use 4 GPUs
-paste src.txt mt.txt | marian evaluate --like comet-qe -m $model_dir/*.npz -v $model_dir/vocab.{spm,spm} \
+paste src.txt mt.txt | marian evaluate --like comet-qe -m $model -v $vocab $vocab \
         -w -4000 --quiet --devices 0 1 2 3 --mini-batch 16 --maxi-batch 1000
 ----
 
