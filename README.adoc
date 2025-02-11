@@ -16,27 +16,31 @@ This repository contains documentation and scripts for Cometoid and Chrfoid metr
 Our models are implemented in https://marian-nmt.github.io/quickstart/[Marian NMT^].
 We provide python bindings for Marian, which can be installed as follows:
 
-.Prerequisites: Install https://github.com/marian-nmt/marian-dev/pull/1013[PyMarian^]
+.Prerequisites: Install PyMarian
+
+We have made prebuilt PyMarian packages available for Linux on Python 3.8 - 3.12. You may install it via `pip` as
+[source, bash]
+```
+pip install pymarian==1.12.31
+```
+
+Alternatively, to install pymarian from source code:
 [source, bash]
 ----
-
 git clone https://github.com/marian-nmt/marian-dev
-# Pybind PR (github.com/marian-nmt/marian-dev/pull/1013) not merged at the time of writing;
-# so checkout the branch
-git checkout tg/pybind-new
 
-# build and install -- run this from project root, i.e., dir having pyproject.toml
-# simple case : no cuda, default compiler
-pip install -v .
-
-# optiona: using a specific version of compiler (e.g., gcc-9 g++-9)
-CMAKE_ARGS="-DCMAKE_C_COMPILER=gcc-9 -DCMAKE_CXX_COMPILER=g++-9" pip install -v .
+# build marian with -DPYMARIAN=on option to create a pymarian wheel
+cmake . -Bbuild -DCOMPILE_CUDA=off -DPYMARIAN=on -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j       # -j option parallelizes build on all cpu cores
+python -m pip install build/pymarian-*.whl
 
 # Option: with CUDA on
-CMAKE_ARGS="-DCOMPILE_CUDA=ON" pip install . 
+cmake . -Bbuild -DCOMPILE_CUDA=on -DPYMARIAN=on -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j       # -j option parallelizes build on all cpu cores
+python -m pip install build/pymarian-*.whl
 
 # Option: with a specific version of cuda toolkit, e,g. cuda 11.5
-CMAKE_ARGS="-DCOMPILE_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.5" pip install -v .
+# add "-DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.5" to cmake CLI
 ----
 
 TIP: If CMAKE complains about missing C/C++ libraries, follow instructions at https://marian-nmt.github.io/quickstart/ and install them.
